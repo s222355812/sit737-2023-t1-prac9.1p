@@ -1,0 +1,12 @@
+{
+    "name": "package.json",
+    "version": "1.0.0",
+    "description": "",
+    "dependencies": {
+        "express": "^4.18.2"
+    },
+    "repository": {
+        "type": "git",
+        "url": "git+https://github.com/s222355812/sit323_737--2023-t1-prac2p.git"
+    }
+}
