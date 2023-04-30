@@ -1,31 +1,7 @@
 const express= require("express");
 const res = require("express/lib/response");
 const app= express();
-app.use(express.json());
-const jwt = require('jsonwebtoken');
-
-
 const fs = require('fs');
-const passport = require('passport');
-const passportJWT = require('passport-jwt');
-
-
-// Configure passport to use JWT strategy
-const JWTStrategy = passportJWT.Strategy;
-const ExtractJWT = passportJWT.ExtractJwt;
-passport.use(new JWTStrategy({
-  jwtFromRequest: ExtractJWT.fromAuthHeaderAsBearerToken(),
-  secretOrKey: 'secret'
-}, (jwtPayload, done) => {
-  // Check if the user is authorized to access the API
-  if (jwtPayload.username === 'admin') {
-    return done(null, jwtPayload.username);
-  } else {
-    return done(null, false);
-  }
-}));
-
-//winston logger
 const winston = require('winston');
 const logger = winston.createLogger({
     level: 'info',
@@ -62,7 +38,7 @@ const mul= (n1,n2) => {
 const div= (n1,n2) => {
     return n1/n2;
 }
-app.get('/add', passport.authenticate('jwt', { session: false }), (req, res) =>{
+app.get("/add", (req,res)=>{
     try{
     const n1= parseFloat(req.query.n1);
     const n2=parseFloat(req.query.n2);
@@ -87,7 +63,7 @@ app.get('/add', passport.authenticate('jwt', { session: false }), (req, res) =>{
         res.status(500).json({statuscocde:500, msg: error.toString() })
       }
 });
-app.get('/subtract', passport.authenticate('jwt', { session: false }), (req, res) =>{
+app.get("/subtract", (req,res)=>{
     try{
     const n1= parseFloat(req.query.n1);
     const n2=parseFloat(req.query.n2);
@@ -112,7 +88,7 @@ app.get('/subtract', passport.authenticate('jwt', { session: false }), (req, res
         res.status(500).json({statuscocde:500, msg: error.toString() })
       }
 });
-app.get("/multiply", passport.authenticate('jwt', { session: false }), (req,res)=>{
+app.get("/multiply", (req,res)=>{
     try{
     const n1= parseFloat(req.query.n1);
     const n2=parseFloat(req.query.n2);
@@ -137,7 +113,7 @@ app.get("/multiply", passport.authenticate('jwt', { session: false }), (req,res)
         res.status(500).json({statuscocde:500, msg: error.toString() })
       }
 });
-app.get("/divide",passport.authenticate('jwt', { session: false }), (req,res)=>{
+app.get("/divide", (req,res)=>{
     try{
     const n1= parseFloat(req.query.n1);
     const n2=parseFloat(req.query.n2);
@@ -165,19 +141,6 @@ app.get("/divide",passport.authenticate('jwt', { session: false }), (req,res)=>{
         console.error(error)
         res.status(500).json({statuscocde:500, msg: error.toString() })
       }
-});
-// Login endpoint
-app.post('/login', (req, res) => {
-  const username = req.body.username;
-  const password = req.body.password;
-
-  // Authenticate user and generate JWT token
-  if (username === 'admin' && password === 'password') {
-    const token = jwt.sign({ username }, 'secret');
-    res.json({ token });
-  } else {
-    res.status(401).json({ error: 'Invalid username or password' });
-  }
 });
 const port=3000;
 app.listen(port,()=> {
