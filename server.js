@@ -22,8 +22,8 @@ if (process.env.NODE_ENV !== 'production') {
   );
 }
 
-const url = 'mongodb+srv://getdocsit725:rRt4v9xgaUUBisER@cluster0.ddz1vjq.mongodb.net/sit737';
-//const url = 'mongodb://localhost:32767/sit737?directConnection=true';
+//const url = 'mongodb+srv://getdocsit725:rRt4v9xgaUUBisER@cluster0.ddz1vjq.mongodb.net/sit737';
+const url = 'mongodb://localhost:32767/sit737?directConnection=true';
 const dbName = 'sit737';
 const collectionName = 'texts';
 
