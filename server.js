@@ -1,148 +1,93 @@
-const express= require("express");
-const res = require("express/lib/response");
-const app= express();
-const fs = require('fs');
+const express = require('express');
+const MongoClient = require('mongodb').MongoClient;
+const app = express();
 const winston = require('winston');
 const logger = winston.createLogger({
-    level: 'info',
-    format: winston.format.json(),
-    defaultMeta: { service: 'calculate-service' },
-    transports: [
-      //
-      // - Write all logs with importance level of `error` or less to `error.log`
-      // - Write all logs with importance level of `info` or less to `combined.log`
-      //
-      new winston.transports.File({ filename: 'error.log', level: 'error' }),
-      new winston.transports.File({ filename: 'combined.log' }),
-    ],
-  });
-  
-  //
-  // If we're not in production then log to the `console` with the format:
-  // `${info.level}: ${info.message} JSON.stringify({ ...rest }) `
-  //
-  if (process.env.NODE_ENV !== 'production') {
-    logger.add(new winston.transports.Console({
+  level: 'info',
+  format: winston.format.json(),
+  defaultMeta: { service: 'calculate-service' },
+  transports: [
+    new winston.transports.File({ filename: 'error.log', level: 'error' }),
+    new winston.transports.File({ filename: 'combined.log' }),
+  ],
+});
+
+if (process.env.NODE_ENV !== 'production') {
+  logger.add(
+    new winston.transports.Console({
       format: winston.format.simple(),
-    }));
+    })
+  );
+}
+
+const url = 'mongodb://localhost:32767/sit737?directConnection=true';
+
+
+MongoClient.connect(url, function (err, client) {
+  if (err) {
+    console.error('Failed to connect to MongoDB:', err);
+    return;
   }
-const add= (n1,n2) => {
-    return n1+n2;
-}
-const sub= (n1,n2) => {
-    return n1-n2;
-}
-const mul= (n1,n2) => {
-    return n1*n2;
-}
-const div= (n1,n2) => {
-    return n1/n2;
-}
-app.get("/add", (req,res)=>{
-    try{
-    const n1= parseFloat(req.query.n1);
-    const n2=parseFloat(req.query.n2);
-    if(isNaN(n1)) {
-        logger.error("n1 is incorrectly defined");
-        throw new Error("n1 incorrectly defined");
+
+  console.log('Connected to MongoDB successfully');
+  const db = client.db('sit737'); 
+  db.createCollection('texts', function (err, collection) {
+    if (err) {
+      console.error('Failed to create collection:', err);
+      return;
     }
-    if(isNaN(n2)) {
-        logger.error("n2 is incorrectly defined");
-        throw new Error("n2 incorrectly defined");
-    }
-    
-    if (n1 === NaN || n2 === NaN) {
-        console.log()
-        throw new Error("Parsing Error");
-    }
-    logger.info('Parameters '+n1+' and '+n2+' received for addition');
-    const result = add(n1,n2);
-    res.status(200).json({statuscocde:200, data: result }); 
-    } catch(error) { 
-        console.error(error)
-        res.status(500).json({statuscocde:500, msg: error.toString() })
-      }
-});
-app.get("/subtract", (req,res)=>{
-    try{
-    const n1= parseFloat(req.query.n1);
-    const n2=parseFloat(req.query.n2);
-    if(isNaN(n1)) {
-        logger.error("n1 is incorrectly defined");
-        throw new Error("n1 incorrectly defined");
-    }
-    if(isNaN(n2)) {
-        logger.error("n2 is incorrectly defined");
-        throw new Error("n2 incorrectly defined");
-    }
-    
-    if (n1 === NaN || n2 === NaN) {
-        console.log()
-        throw new Error("Parsing Error");
-    }
-    logger.info('Parameters '+n1+' and '+n2+' received for addition');
-    const result = sub(n1,n2);
-    res.status(200).json({statuscocde:200, data: result }); 
-    } catch(error) { 
-        console.error(error)
-        res.status(500).json({statuscocde:500, msg: error.toString() })
-      }
-});
-app.get("/multiply", (req,res)=>{
-    try{
-    const n1= parseFloat(req.query.n1);
-    const n2=parseFloat(req.query.n2);
-    if(isNaN(n1)) {
-        logger.error("n1 is incorrectly defined");
-        throw new Error("n1 incorrectly defined");
-    }
-    if(isNaN(n2)) {
-        logger.error("n2 is incorrectly defined");
-        throw new Error("n2 incorrectly defined");
-    }
-    
-    if (n1 === NaN || n2 === NaN) {
-        console.log()
-        throw new Error("Parsing Error");
-    }
-    logger.info('Parameters '+n1+' and '+n2+' received for addition');
-    const result = mul(n1,n2);
-    res.status(200).json({statuscocde:200, data: result }); 
-    } catch(error) { 
-        console.error(error)
-        res.status(500).json({statuscocde:500, msg: error.toString() })
-      }
-});
-app.get("/divide", (req,res)=>{
-    try{
-    const n1= parseFloat(req.query.n1);
-    const n2=parseFloat(req.query.n2);
-    if(isNaN(n1)) {
-        logger.error("n1 is incorrectly defined");
-        throw new Error("n1 incorrectly defined");
-    }
-    if(isNaN(n2)) {
-        logger.error("n2 is incorrectly defined");
-        throw new Error("n2 incorrectly defined");
-    }
-    
-    if (n1 === NaN || n2 === NaN) {
-        console.log()
-        throw new Error("Parsing Error");
-    }
-    if (parseFloat(n2) === 0) {
-        res.status(400).json({ error: 'n2 should not be zero' });
-        return;
-      }
-    logger.info('Parameters '+n1+' and '+n2+' received for addition');
-    const result = div(n1,n2);
-    res.status(200).json({statuscocde:200, data: result }); 
-    } catch(error) { 
-        console.error(error)
-        res.status(500).json({statuscocde:500, msg: error.toString() })
-      }
-});
-const port=3000;
-app.listen(port,()=> {
-    console.log("hello i'm listening to port " +port);
+    console.log('Collection "texts" created successfully');
+
+    // Insert a text document
+    app.get('/insert', (req, res) => {
+      const text = { content: 'Hello, MongoDB!' };
+
+      collection.insertOne(text, function (err, result) {
+        if (err) {
+          console.error('Failed to insert text:', err);
+          res.status(500).json({ statuscode: 500, msg: err.toString() });
+          return;
+        }
+
+        console.log('Text inserted successfully');
+        res.status(200).json({ statuscode: 200, data: result });
+      });
+    });
+
+    // Find all text documents
+    app.get('/find', (req, res) => {
+      collection.find().toArray(function (err, texts) {
+        if (err) {
+          console.error('Failed to find texts:', err);
+          res.status(500).json({ statuscode: 500, msg: err.toString() });
+          return;
+        }
+
+        console.log('Found', texts.length, 'texts');
+        res.status(200).json({ statuscode: 200, data: texts });
+      });
+    });
+
+    // Update a text document
+    app.get('/update', (req, res) => {
+      const filter = { content: 'Hello, MongoDB!' };
+      const update = { $set: { content: 'Updated text' } };
+
+      collection.updateOne(filter, update, function (err, result) {
+        if (err) {
+          console.error('Failed to update text:', err);
+          res.status(500).json({ statuscode: 500, msg: err.toString() });
+          return;
+        }
+
+        console.log('Text updated successfully');
+        res.status(200).json({ statuscode: 200, data: result });
+      });
+    });
+
+    const port = 3000;
+    app.listen(port, () => {
+      console.log("Hello, I'm listening to port " + port);
+    });
+  });
 });

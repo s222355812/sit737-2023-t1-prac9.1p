@@ -1,22 +1,38 @@
 apiVersion: apps/v1
 kind: Deployment
 metadata:
-  name: sit323-737-2023-t1-prac7p-deployment
+  name: sit323-737-2023-t1-prac7c-deployment
   labels:
-        app: sit323-737-2023-t1-prac7p
+    app: sit323-737-2023-t1-prac7c
 spec:
   replicas: 3
   selector:
     matchLabels:
-      app: sit323-737-2023-t1-prac7p
+      app: sit323-737-2023-t1-prac7c
   template:
     metadata:
       labels:
-        app: sit323-737-2023-t1-prac7p
+        app: sit323-737-2023-t1-prac7c
     spec:
       containers:
-        - name: sit323-737-2023-t1-prac7p
-          image: vrushali92/sit737:latest
+        - name: sit323-737-2023-t1-prac7c
+          image: vrushali92/repo_1:latest
           ports:
             - containerPort: 3000
-          
+          env:
+            - name: MONGO_HOST
+              value: mongodb
+            - name: MONGO_PORT
+              value: "27017"
+            - name: MONGO_DB
+              value: sit737
+            - name: MONGO_USER
+              valueFrom:
+                secretKeyRef:
+                  name: mongodb-secret
+                  key: username
+            - name: MONGO_PASSWORD
+              valueFrom:
+                secretKeyRef:
+                  name: mongodb-secret
+                  key: password
