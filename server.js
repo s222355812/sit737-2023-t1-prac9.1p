@@ -1,7 +1,9 @@
 const express = require('express');
-const MongoClient = require('mongodb').MongoClient;
+const { MongoClient, ObjectID } = require('mongodb');
 const app = express();
 const winston = require('winston');
+const { ObjectId } = require('mongodb');
+
 const logger = winston.createLogger({
   level: 'info',
   format: winston.format.json(),
@@ -20,74 +22,84 @@ if (process.env.NODE_ENV !== 'production') {
   );
 }
 
-const url = 'mongodb://localhost:32767/sit737?directConnection=true';
+const url = 'mongodb+srv://getdocsit725:rRt4v9xgaUUBisER@cluster0.ddz1vjq.mongodb.net/sit737';
+const dbName = 'sit737';
+const collectionName = 'texts';
 
-
-MongoClient.connect(url, function (err, client) {
-  if (err) {
-    console.error('Failed to connect to MongoDB:', err);
-    return;
-  }
-
-  console.log('Connected to MongoDB successfully');
-  const db = client.db('sit737'); 
-  db.createCollection('texts', function (err, collection) {
-    if (err) {
-      console.error('Failed to create collection:', err);
-      return;
-    }
-    console.log('Collection "texts" created successfully');
-
+async function connectToMongoDB() {
+  try {
+    const client = new MongoClient(url);
+    await client.connect();
+    console.log('Connected to MongoDB successfully');
+    const db = client.db(dbName);
+    const collection = db.collection(collectionName);
+  
+    // Middleware to parse request body as JSON
+    app.use(express.json());
+  
     // Insert a text document
-    app.get('/insert', (req, res) => {
-      const text = { content: 'Hello, MongoDB!' };
-
-      collection.insertOne(text, function (err, result) {
-        if (err) {
-          console.error('Failed to insert text:', err);
-          res.status(500).json({ statuscode: 500, msg: err.toString() });
-          return;
-        }
-
+    app.post('/texts', async (req, res) => {
+      const text = { content: req.body.content };
+  
+      try {
+        const result = await collection.insertOne(text);
         console.log('Text inserted successfully');
-        res.status(200).json({ statuscode: 200, data: result });
-      });
+        res.status(200).json({ statuscode: 200, data: result.ops });
+      } catch (err) {
+        console.error('Failed to insert text:', err);
+        res.status(500).json({ statuscode: 500, msg: err.toString() });
+      }
     });
-
+  
     // Find all text documents
-    app.get('/find', (req, res) => {
-      collection.find().toArray(function (err, texts) {
-        if (err) {
-          console.error('Failed to find texts:', err);
-          res.status(500).json({ statuscode: 500, msg: err.toString() });
-          return;
-        }
-
+    app.get('/texts', async (req, res) => {
+      try {
+        const texts = await collection.find().toArray();
         console.log('Found', texts.length, 'texts');
         res.status(200).json({ statuscode: 200, data: texts });
-      });
+      } catch (err) {
+        console.error('Failed to find texts:', err);
+        res.status(500).json({ statuscode: 500, msg: err.toString() });
+      }
     });
-
+  
     // Update a text document
-    app.get('/update', (req, res) => {
-      const filter = { content: 'Hello, MongoDB!' };
-      const update = { $set: { content: 'Updated text' } };
-
-      collection.updateOne(filter, update, function (err, result) {
-        if (err) {
-          console.error('Failed to update text:', err);
-          res.status(500).json({ statuscode: 500, msg: err.toString() });
-          return;
-        }
-
+    app.put('/texts/:id', async (req, res) => {
+      const filter = { _id: ObjectID(req.params.id) };
+      const update = { $set: { content: req.body.content } };
+  
+      try {
+        const result = await collection.updateOne(filter, update);
         console.log('Text updated successfully');
         res.status(200).json({ statuscode: 200, data: result });
-      });
+      } catch (err) {
+        console.error('Failed to update text:', err);
+        res.status(500).json({ statuscode: 500, msg: err.toString() });
+      }
     });
+  
+   // Delete a text document
+app.delete('/texts/:id', async (req, res) => {
+  const filter = { _id: ObjectID(req.params.id) };
 
+  try {
+    const result = await collection.deleteOne(filter);
+    console.log('Text deleted successfully');
+    res.status(200).json({ statuscode: 200, data: result.deletedCount });
+  } catch (err) {
+    console.error('Failed to delete text:', err);
+    res.status(500).json({ statuscode: 500, msg: err.toString() });
+  }
+});
+
+  
     const port = 3000;
     app.listen(port, () => {
       console.log("Hello, I'm listening to port " + port);
     });
-  });
-});
+  } catch (err) {
+    console.error('Failed to connect to MongoDB:', err);
+  }
+}
+
+connectToMongoDB();
