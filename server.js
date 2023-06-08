@@ -22,8 +22,8 @@ if (process.env.NODE_ENV !== 'production') {
   );
 }
 
-//const url = 'mongodb+srv://getdocsit725:rRt4v9xgaUUBisER@cluster0.ddz1vjq.mongodb.net/sit737';
-const url = 'mongodb://localhost:32767/sit737?directConnection=true';
+const url = 'mongodb+srv://getdocsit725:rRt4v9xgaUUBisER@cluster0.ddz1vjq.mongodb.net/sit737';
+//const url = 'mongodb://localhost:32767/sit737?directConnection=true';
 const dbName = 'sit737';
 const collectionName = 'texts';
 
@@ -80,18 +80,19 @@ async function connectToMongoDB() {
     });
   
    // Delete a text document
-app.delete('/texts/:id', async (req, res) => {
-  const filter = { _id: ObjectID(req.params.id) };
-
-  try {
-    const result = await collection.deleteOne(filter);
-    console.log('Text deleted successfully');
-    res.status(200).json({ statuscode: 200, data: result.deletedCount });
-  } catch (err) {
-    console.error('Failed to delete text:', err);
-    res.status(500).json({ statuscode: 500, msg: err.toString() });
-  }
-});
+   app.delete('/texts/:id', async (req, res) => {
+    const filter = { _id: ObjectID(req.params.id) };
+  
+    try {
+      const result = await collection.deleteOne(filter);
+      console.log('Text deleted successfully');
+      res.status(200).json({ statuscode: 200, data: [{ _id: req.params.id, data: result.deletedCount }] });
+    } catch (err) {
+      console.error('Failed to delete text:', err);
+      res.status(500).json({ statuscode: 500, msg: err.toString() });
+    }
+  });
+  
 
   
     const port = 3000;
